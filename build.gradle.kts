@@ -32,4 +32,9 @@ dependencies {
 
     implementation(libs.kmongo)
     implementation(libs.kmongo.coroutine)
+
+    implementation(libs.ktor.server.auth)
+    implementation(libs.ktor.server.auth.jwt)
+    implementation(libs.ktor.server.auth.jvm)
+    implementation(libs.commons.codec)
 }
