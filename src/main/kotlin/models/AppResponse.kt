@@ -4,7 +4,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class SuccessResponse(
-    val success: Boolean = true
+    val success: Boolean = true,
+    val user: User? = null
 )
 
 @Serializable

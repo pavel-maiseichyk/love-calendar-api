@@ -19,8 +19,8 @@ class UserRepositoryImpl(db: CoroutineDatabase) : UserRepository {
         return users.findOne(UserEntity::id eq userID)?.toUser()
     }
 
-    override suspend fun getUserByEmail(email: String): User? {
-        return users.findOne(UserEntity::email eq email)?.toUser()
+    override suspend fun getUserByEmail(email: String): UserEntity? {
+        return users.findOne(UserEntity::email eq email)
     }
 
     override suspend fun doesUserExist(email: String): Boolean {

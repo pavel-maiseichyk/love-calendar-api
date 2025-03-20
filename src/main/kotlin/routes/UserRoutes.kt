@@ -2,10 +2,10 @@ package routes
 
 import io.ktor.http.*
 import io.ktor.server.auth.*
+import io.ktor.server.auth.jwt.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import kotlinx.serialization.json.buildJsonObject
 import models.ErrorResponse
 import models.SuccessResponse
 import models.User
@@ -13,33 +13,29 @@ import repository.UserRepository
 
 fun Route.userRoutes(repository: UserRepository) {
     authenticate {
-        route("/users/{id}") {
+        route("/users") {
             get {
-                val userID = call.parameters["id"] ?: return@get call.respond(
+                val userID = call.principal<JWTPrincipal>()?.get("userID") ?: return@get call.respond(
                     status = HttpStatusCode.BadRequest,
                     message = ErrorResponse(message = "Missing ID.")
                 )
 
                 val user = repository.getUserByID(userID = userID)
-                call.respond(
-                    status = HttpStatusCode.OK,
-                    message = buildJsonObject {
-                        "success" to true
-                        "user" to user
-                    },
-                )
+                if (user == null) {
+                    call.respond(
+                        status = HttpStatusCode.NotFound,
+                        message = ErrorResponse(message = "User with ID $userID not found.")
+                    )
+                } else {
+                    call.respond(
+                        status = HttpStatusCode.OK,
+                        message = SuccessResponse(user = user),
+                    )
+                }
             }
-            put {
-                val userID = call.parameters["id"] ?: return@put call.respond(
-                    status = HttpStatusCode.BadRequest,
-                    message = ErrorResponse(message = "Missing ID.")
-                )
-                val updatedUser = call.receive<User>()
 
-                if (userID != updatedUser.id) return@put call.respond(
-                    status = HttpStatusCode.Forbidden,
-                    message = ErrorResponse(message = "Forbidden to update this user.")
-                )
+            put {
+                val updatedUser = call.receive<User>()
 
                 val success = repository.updateUser(updatedUser)
                 if (success) {
@@ -54,8 +50,9 @@ fun Route.userRoutes(repository: UserRepository) {
                     )
                 }
             }
+
             delete {
-                val userID = call.parameters["id"] ?: return@delete call.respond(
+                val userID = call.principal<JWTPrincipal>()?.get("userID") ?: return@delete call.respond(
                     status = HttpStatusCode.BadRequest,
                     message = ErrorResponse(message = "Missing ID.")
                 )
@@ -76,10 +73,3 @@ fun Route.userRoutes(repository: UserRepository) {
         }
     }
 }
-
-//        route("/users") {
-//            get {
-//                val users = repository.getUsers()
-//                call.respond(status = HttpStatusCode.OK, mapOf("users" to users))
-//            }
-//        }

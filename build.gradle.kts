@@ -37,4 +37,7 @@ dependencies {
     implementation(libs.ktor.server.auth.jwt)
     implementation(libs.ktor.server.auth.jvm)
     implementation(libs.commons.codec)
+
+    implementation(libs.mockk)
+    implementation(libs.ktor.client.content.negotiation)
 }
