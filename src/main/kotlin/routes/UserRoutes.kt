@@ -41,7 +41,7 @@ fun Route.userRoutes(repository: UserRepository) {
                 if (success) {
                     call.respond(
                         status = HttpStatusCode.OK,
-                        message = SuccessResponse
+                        message = SuccessResponse()
                     )
                 } else {
                     call.respond(
@@ -61,7 +61,7 @@ fun Route.userRoutes(repository: UserRepository) {
                 if (success) {
                     call.respond(
                         status = HttpStatusCode.OK,
-                        message = SuccessResponse
+                        message = SuccessResponse()
                     )
                 } else {
                     call.respond(

@@ -21,7 +21,8 @@ fun Route.authRoutes(
     userRepository: UserRepository
 ) {
     post("/sign_up") {
-        val request = call.receiveNullable<AuthRequest>() ?: run {
+        val request = call.receiveNullable<AuthRequest>()
+        if (request == null) {
             call.respond(
                 status = HttpStatusCode.BadRequest,
                 message = ErrorResponse(message = "Bad request.")
@@ -32,8 +33,8 @@ fun Route.authRoutes(
         val areFieldsBlank = request.email.isBlank() || request.password.isBlank()
         if (areFieldsBlank) {
             call.respond(
-                status = HttpStatusCode.Conflict,
-                message = ErrorResponse(message = "The fields were filled incorrectly..")
+                status = HttpStatusCode.BadRequest,
+                message = ErrorResponse(message = "The fields were filled incorrectly.")
             )
             return@post
         }
@@ -59,7 +60,7 @@ fun Route.authRoutes(
         val wasAcknowledged = userRepository.addUser(user)
         if (!wasAcknowledged) {
             call.respond(
-                status = HttpStatusCode.Conflict,
+                status = HttpStatusCode.InternalServerError,
                 message = ErrorResponse(message = "Failed to add user.")
             )
             return@post
@@ -67,7 +68,7 @@ fun Route.authRoutes(
 
         call.respond(
             status = HttpStatusCode.OK,
-            message = SuccessResponse
+            message = SuccessResponse()
         )
     }
 
@@ -132,7 +133,7 @@ fun Route.authRoutes(
         get("/authenticate") {
             call.respond(
                 status = HttpStatusCode.OK,
-                message = SuccessResponse
+                message = SuccessResponse()
             )
         }
     }
