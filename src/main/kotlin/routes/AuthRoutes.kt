@@ -21,14 +21,7 @@ fun Route.authRoutes(
     userRepository: UserRepository
 ) {
     post("/sign_up") {
-        val request = call.receiveNullable<AuthRequest>()
-        if (request == null) {
-            call.respond(
-                status = HttpStatusCode.BadRequest,
-                message = ErrorResponse(message = "Bad request.")
-            )
-            return@post
-        }
+        val request = call.receive<AuthRequest>()
 
         val areFieldsBlank = request.email.isBlank() || request.password.isBlank()
         if (areFieldsBlank) {
@@ -39,8 +32,7 @@ fun Route.authRoutes(
             return@post
         }
 
-        val doesUserExist = userRepository.doesUserExist(email = request.email)
-        if (doesUserExist) {
+        if (userRepository.getUserEntityByEmail(email = request.email) != null) {
             call.respond(
                 status = HttpStatusCode.Conflict,
                 message = ErrorResponse(message = "User with email ${request.email} already exists.")
@@ -57,7 +49,7 @@ fun Route.authRoutes(
             specialDate = "",
             meetings = emptyList()
         )
-        val wasAcknowledged = userRepository.addUser(user)
+        val wasAcknowledged = userRepository.addUserEntity(user)
         if (!wasAcknowledged) {
             call.respond(
                 status = HttpStatusCode.InternalServerError,
@@ -73,15 +65,9 @@ fun Route.authRoutes(
     }
 
     post("/sign_in") {
-        val request = call.receiveNullable<AuthRequest>() ?: run {
-            call.respond(
-                status = HttpStatusCode.BadRequest,
-                message = ErrorResponse(message = "Bad request.")
-            )
-            return@post
-        }
+        val request = call.receive<AuthRequest>()
 
-        val userEntity = userRepository.getUserByEmail(email = request.email)
+        val userEntity = userRepository.getUserEntityByEmail(email = request.email)
         if (userEntity == null) {
             call.respond(
                 status = HttpStatusCode.NotFound,

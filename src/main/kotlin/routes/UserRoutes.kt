@@ -15,10 +15,12 @@ fun Route.userRoutes(repository: UserRepository) {
     authenticate {
         route("/users") {
             get {
-                val userID = call.principal<JWTPrincipal>()?.get("userID") ?: return@get call.respond(
-                    status = HttpStatusCode.BadRequest,
-                    message = ErrorResponse(message = "Missing ID.")
-                )
+                val userID = call.principal<JWTPrincipal>()
+                    ?.get("userID")
+                    ?: return@get call.respond(
+                        status = HttpStatusCode.BadRequest,
+                        message = ErrorResponse(message = "Missing ID.")
+                    )
 
                 val user = repository.getUserByID(userID = userID)
                 if (user == null) {

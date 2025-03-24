@@ -40,4 +40,5 @@ dependencies {
 
     implementation(libs.mockk)
     implementation(libs.ktor.client.content.negotiation)
+    implementation(libs.ktor.server.status.pages)
 }

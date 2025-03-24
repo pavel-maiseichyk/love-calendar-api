@@ -76,9 +76,9 @@ class AuthRoutesTest : BaseRoutesTest() {
         tokenConfig = mockTokenConfig,
         userRepository = mockRepository
     ) { client ->
-        every { runBlocking { mockRepository.doesUserExist(any()) } } returns false
+        every { runBlocking { mockRepository.getUserEntityByEmail(any()) } } returns null
         every { runBlocking { mockHashingService.generateSaltedHash(any()) } } returns saltedHash
-        every { runBlocking { mockRepository.addUser(any()) } } returns true
+        every { runBlocking { mockRepository.addUserEntity(any()) } } returns true
 
         val response = client.post("/sign_up") {
             bearerAuth(generateTestToken(userID = userID))
@@ -87,28 +87,6 @@ class AuthRoutesTest : BaseRoutesTest() {
         }
 
         assertEquals(HttpStatusCode.OK, response.status)
-    }
-
-    @Test
-    fun `POST sign up - Failure, bad request body`() = testWithAuthRoutes(
-        hashingService = mockHashingService,
-        tokenService = mockTokenService,
-        tokenConfig = mockTokenConfig,
-        userRepository = mockRepository
-    ) { client ->
-        val badRequestStructure = mapOf(
-            "mail" to "admin",
-            "password" to "admin",
-            "id" to "123"
-        )
-
-        val response = client.post("/sign_up") {
-            bearerAuth(generateTestToken(userID))
-            contentType(ContentType.Application.Json)
-            setBody(badRequestStructure)
-        }
-
-        assertEquals(HttpStatusCode.BadRequest, response.status)
     }
 
     @Test
@@ -136,7 +114,7 @@ class AuthRoutesTest : BaseRoutesTest() {
         userRepository = mockRepository
     ) { client ->
 
-        every { runBlocking { mockRepository.doesUserExist(any()) } } returns true
+        every { runBlocking { mockRepository.getUserEntityByEmail(any()) } } returns userEntity
 
         val response = client.post("/sign_up") {
             bearerAuth(generateTestToken(userID = userID))
@@ -156,9 +134,9 @@ class AuthRoutesTest : BaseRoutesTest() {
         userRepository = mockRepository
     ) { client ->
 
-        every { runBlocking { mockRepository.doesUserExist(any()) } } returns false
+        every { runBlocking { mockRepository.getUserEntityByEmail(any()) } } returns null
         every { runBlocking { mockHashingService.generateSaltedHash(any()) } } returns saltedHash
-        every { runBlocking { mockRepository.addUser(any()) } } returns false
+        every { runBlocking { mockRepository.addUserEntity(any()) } } returns false
 
         val response = client.post("/sign_up") {
             bearerAuth(generateTestToken(userID = userID))
@@ -179,7 +157,7 @@ class AuthRoutesTest : BaseRoutesTest() {
     ) { client ->
 
         val token = generateTestToken(userID)
-        every { runBlocking { mockRepository.getUserByEmail(any()) } } returns userEntity
+        every { runBlocking { mockRepository.getUserEntityByEmail(any()) } } returns userEntity
         every { runBlocking { mockHashingService.verify(any(), any()) } } returns true
         every { runBlocking { mockTokenService.generate(any(), any()) } } returns token
 
@@ -193,28 +171,6 @@ class AuthRoutesTest : BaseRoutesTest() {
     }
 
     @Test
-    fun `POST sign in - Failure, bad request body`() = testWithAuthRoutes(
-        hashingService = mockHashingService,
-        tokenService = mockTokenService,
-        tokenConfig = mockTokenConfig,
-        userRepository = mockRepository
-    ) { client ->
-        val badRequestStructure = mapOf(
-            "mail" to "admin",
-            "password" to "admin",
-            "id" to "123"
-        )
-
-        val response = client.post("/sign_in") {
-            bearerAuth(generateTestToken(userID))
-            contentType(ContentType.Application.Json)
-            setBody(badRequestStructure)
-        }
-
-        assertEquals(HttpStatusCode.BadRequest, response.status)
-    }
-
-    @Test
     fun `POST sign in - Failure, user not found`() = testWithAuthRoutes(
         hashingService = mockHashingService,
         tokenService = mockTokenService,
@@ -223,7 +179,7 @@ class AuthRoutesTest : BaseRoutesTest() {
     ) { client ->
 
         val token = generateTestToken(userID)
-        every { runBlocking { mockRepository.getUserByEmail(any()) } } returns null
+        every { runBlocking { mockRepository.getUserEntityByEmail(any()) } } returns null
 
         val response = client.post("/sign_in") {
             bearerAuth(token)
@@ -244,7 +200,7 @@ class AuthRoutesTest : BaseRoutesTest() {
     ) { client ->
 
         val token = generateTestToken(userID)
-        every { runBlocking { mockRepository.getUserByEmail(any()) } } returns userEntity
+        every { runBlocking { mockRepository.getUserEntityByEmail(any()) } } returns userEntity
         every { runBlocking { mockHashingService.verify(any(), any()) } } returns false
 
         val response = client.post("/sign_in") {

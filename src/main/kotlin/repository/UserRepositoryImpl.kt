@@ -5,11 +5,11 @@ import mappers.toUser
 import models.User
 import models.UserEntity
 import org.litote.kmongo.coroutine.CoroutineCollection
-import org.litote.kmongo.coroutine.CoroutineDatabase
 import org.litote.kmongo.eq
 
-class UserRepositoryImpl(db: CoroutineDatabase) : UserRepository {
-    private val users: CoroutineCollection<UserEntity> = db.getCollection()
+class UserRepositoryImpl(
+    private val users: CoroutineCollection<UserEntity>
+) : UserRepository {
 
     override suspend fun getUsers(): List<User> {
         return users.find().toList().map { it.toUser() }
@@ -19,16 +19,12 @@ class UserRepositoryImpl(db: CoroutineDatabase) : UserRepository {
         return users.findOne(UserEntity::id eq userID)?.toUser()
     }
 
-    override suspend fun getUserByEmail(email: String): UserEntity? {
+    override suspend fun getUserEntityByEmail(email: String): UserEntity? {
         return users.findOne(UserEntity::email eq email)
     }
 
-    override suspend fun doesUserExist(email: String): Boolean {
-        return users.findOne(UserEntity::email eq email) != null
-    }
-
-    override suspend fun addUser(user: UserEntity): Boolean {
-        return users.insertOne(user).wasAcknowledged()
+    override suspend fun addUserEntity(userEntity: UserEntity): Boolean {
+        return users.insertOne(userEntity).wasAcknowledged()
     }
 
     override suspend fun updateUser(updatedUser: User): Boolean {

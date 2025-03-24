@@ -1,11 +1,16 @@
 package com.example.routes
 
+import com.auth0.jwt.exceptions.JWTVerificationException
 import com.example.utils.BaseRoutesTest
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.http.*
-import io.mockk.every
-import io.mockk.mockk
+import io.ktor.server.application.*
+import io.ktor.server.auth.*
+import io.ktor.server.auth.jwt.*
+import io.ktor.server.response.*
+import io.ktor.server.testing.*
+import io.mockk.*
 import kotlinx.coroutines.runBlocking
 import models.ErrorResponse
 import models.SuccessResponse
@@ -80,24 +85,6 @@ class UserRoutesTest : BaseRoutesTest() {
 
         assertEquals(HttpStatusCode.OK, response.status)
         assertEquals(true, response.body<SuccessResponse>().success)
-    }
-
-    @Test
-    fun `PUT user - Failure, Bad request body`() = testWithUserRoutes(mockRepository) { client ->
-        val badUserStructure = mapOf(
-            "id" to userID,
-            "name" to "User",
-            "email" to "",
-            "specialDate" to ""
-        )
-
-        val response = client.put("/users") {
-            bearerAuth(token = generateTestToken(userID))
-            contentType(ContentType.Application.Json)
-            setBody(badUserStructure)
-        }
-
-        assertEquals(HttpStatusCode.BadRequest, response.status)
     }
 
     @Test

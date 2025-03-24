@@ -1,10 +1,12 @@
 package di
 
+import models.UserEntity
 import repository.UserRepositoryImpl
 import repository.UserRepository
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.bind
 import org.koin.dsl.module
+import org.litote.kmongo.coroutine.CoroutineCollection
 import org.litote.kmongo.coroutine.CoroutineDatabase
 import org.litote.kmongo.coroutine.coroutine
 import org.litote.kmongo.reactivestreams.KMongo
@@ -22,6 +24,9 @@ val koinModule = module {
             .createClient(MONGO_CONNECTION_STRING)
             .coroutine
             .getDatabase(DATABASE_NAME)
+    }
+    single<CoroutineCollection<UserEntity>> {
+        get<CoroutineDatabase>().getCollection<UserEntity>()
     }
     singleOf(::UserRepositoryImpl).bind<UserRepository>()
     singleOf(::JWTTokenService).bind<TokenService>()

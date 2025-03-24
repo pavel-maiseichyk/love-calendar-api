@@ -113,7 +113,6 @@ abstract class BaseRoutesTest {
         return JWT.create()
             .withAudience(audience)
             .withIssuer(issuer)
-            .withClaim("id", userID)
             .withExpiresAt(java.util.Date(System.currentTimeMillis() + 60000)) // 1 минута
             .sign(Algorithm.HMAC256(testSecret))
     }
