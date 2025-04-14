@@ -1,9 +1,9 @@
-package models
+package routes.user
 
 import kotlinx.serialization.Serializable
+import models.User
 
 @Serializable
-data class AuthResponse(
-    val token: String,
+data class UserResponse(
     val user: User
 )

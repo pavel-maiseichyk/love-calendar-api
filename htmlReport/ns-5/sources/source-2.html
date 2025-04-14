@@ -1,0 +1,125 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > SHA256HashingService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">security.hashing</a>
+</div>
+
+<h1>Coverage Summary for Class: SHA256HashingService (security.hashing)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">SHA256HashingService</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (3/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (8/8)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package security.hashing
+&nbsp;
+&nbsp;import org.apache.commons.codec.binary.Hex
+&nbsp;import org.apache.commons.codec.digest.DigestUtils
+&nbsp;import java.security.SecureRandom
+&nbsp;
+<b class="fc">&nbsp;class SHA256HashingService : HashingService {</b>
+&nbsp;    override fun generateSaltedHash(value: String, saltLength: Int): SaltedHash {
+<b class="fc">&nbsp;        val salt = SecureRandom.getInstance(&quot;SHA1PRNG&quot;).generateSeed(saltLength)</b>
+<b class="fc">&nbsp;        val saltAsHex = Hex.encodeHexString(salt)</b>
+<b class="fc">&nbsp;        val hash = DigestUtils.sha256Hex(&quot;$saltAsHex$value&quot;)</b>
+<b class="fc">&nbsp;        return SaltedHash(</b>
+<b class="fc">&nbsp;            hash = hash,</b>
+<b class="fc">&nbsp;            salt = saltAsHex</b>
+&nbsp;        )
+&nbsp;    }
+&nbsp;
+&nbsp;    override fun verify(value: String, saltedHash: SaltedHash): Boolean {
+<b class="fc">&nbsp;        return DigestUtils.sha256Hex(saltedHash.salt + value) == saltedHash.hash</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-04-08 13:23</div>
+</div>
+</body>
+</html>

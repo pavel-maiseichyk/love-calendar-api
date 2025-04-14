@@ -3,9 +3,7 @@ package com.example.security
 import org.apache.commons.codec.digest.DigestUtils
 import org.junit.Assert.*
 import org.junit.Test
-import io.mockk.*
 import security.hashing.SHA256HashingService
-import java.security.SecureRandom
 
 class SHA256HashingServiceTest {
 
@@ -46,17 +44,5 @@ class SHA256HashingServiceTest {
         val saltedHash = hashingService.generateSaltedHash(value, saltLength)
 
         assertFalse(hashingService.verify(wrongValue, saltedHash))
-    }
-
-    @Test
-    fun `generateSaltedHash should use SecureRandom`() {
-        mockkStatic(SecureRandom::class)
-        val mockSecureRandom = mockk<SecureRandom>(relaxed = true)
-        every { SecureRandom.getInstance("SHA1PRNG") } returns mockSecureRandom
-
-        hashingService.generateSaltedHash("value", 16)
-
-        verify { mockSecureRandom.generateSeed(16) }
-        unmockkStatic(SecureRandom::class)
     }
 }

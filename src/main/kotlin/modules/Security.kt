@@ -21,7 +21,12 @@ fun Application.configureSecurity() {
                     .build()
             )
             validate { credential ->
-                if (credential.payload.audience.contains(tokenConfig.audience)) {
+                val expiresAt = credential.payload.expiresAt?.time
+                if (expiresAt != null && expiresAt < System.currentTimeMillis()) {
+                    null
+                } else if (credential.payload.audience.contains(tokenConfig.audience) &&
+                    credential.payload.getClaim("type").asString() == "access"
+                ) {
                     JWTPrincipal(credential.payload)
                 } else {
                     null

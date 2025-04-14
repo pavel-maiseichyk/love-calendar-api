@@ -10,6 +10,7 @@ fun main() {
 }
 
 fun Application.module() {
+    configureLogging()
     configureKoin()
     configureStatusPages()
     configureSecurity()

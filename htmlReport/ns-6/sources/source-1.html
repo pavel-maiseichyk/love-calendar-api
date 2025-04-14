@@ -1,0 +1,124 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > JWTTokenService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">security.token</a>
+</div>
+
+<h1>Coverage Summary for Class: JWTTokenService (security.token)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">JWTTokenService</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (2/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (10/10)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package security.token
+&nbsp;
+&nbsp;import com.auth0.jwt.JWT
+&nbsp;import com.auth0.jwt.algorithms.Algorithm
+&nbsp;import java.util.*
+&nbsp;
+<b class="fc">&nbsp;class JWTTokenService : TokenService {</b>
+&nbsp;    override fun generate(config: TokenConfig, vararg claims: TokenClaim): String {
+<b class="fc">&nbsp;        var token = JWT</b>
+<b class="fc">&nbsp;            .create()</b>
+<b class="fc">&nbsp;            .withAudience(config.audience)</b>
+<b class="fc">&nbsp;            .withIssuer(config.issuer)</b>
+<b class="fc">&nbsp;            .withExpiresAt(Date(System.currentTimeMillis() + config.expiresIn))</b>
+&nbsp;
+<b class="fc">&nbsp;        claims.forEach { claim -&gt;</b>
+<b class="fc">&nbsp;            token = token.withClaim(claim.name, claim.value)</b>
+<b class="fc">&nbsp;        }</b>
+<b class="fc">&nbsp;        return token.sign(Algorithm.HMAC256(config.secret))</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-04-08 13:23</div>
+</div>
+</body>
+</html>

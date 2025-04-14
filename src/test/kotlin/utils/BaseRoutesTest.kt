@@ -11,8 +11,8 @@ import io.ktor.server.auth.jwt.*
 import io.ktor.server.testing.*
 import kotlinx.serialization.json.Json
 import repository.UserRepository
-import routes.authRoutes
-import routes.userRoutes
+import routes.auth.authRoutes
+import routes.user.userRoutes
 import security.hashing.HashingService
 import security.token.TokenConfig
 import security.token.TokenService

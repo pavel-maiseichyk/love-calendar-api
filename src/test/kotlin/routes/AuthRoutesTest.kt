@@ -7,7 +7,7 @@ import io.ktor.http.*
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
-import models.AuthRequest
+import routes.auth.AuthRequest
 import models.ErrorResponse
 import models.SuccessResponse
 import models.UserEntity

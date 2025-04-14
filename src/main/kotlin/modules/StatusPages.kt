@@ -1,7 +1,7 @@
 package modules
 
-import io.ktor.client.call.*
 import io.ktor.http.*
+import models.ApiException
 import io.ktor.server.application.*
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.response.*
@@ -9,10 +9,16 @@ import models.ErrorResponse
 
 fun Application.configureStatusPages() {
     install(StatusPages) {
-        exception<NoTransformationFoundException> { call, cause ->
+        exception<ApiException> { call, cause ->
             call.respond(
-                status = HttpStatusCode.BadRequest,
+                status = cause.status,
                 message = ErrorResponse(message = cause.message)
+            )
+        }
+        exception<Throwable> { call, cause ->
+            call.respond(
+                status = HttpStatusCode.InternalServerError,
+                message = ErrorResponse(message = cause.message ?: "Internal server error.")
             )
         }
     }
