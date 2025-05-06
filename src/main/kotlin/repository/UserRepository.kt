@@ -1,7 +1,7 @@
 package repository
 
-import models.User
-import models.UserEntity
+import model.user.User
+import model.user.UserEntity
 
 interface UserRepository {
     suspend fun getUsers(): List<User>

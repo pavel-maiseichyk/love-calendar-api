@@ -1,30 +1,29 @@
 package repository
 
-import models.RefreshTokenEntity
-import org.litote.kmongo.coroutine.CoroutineCollection
-import org.litote.kmongo.coroutine.CoroutineDatabase
-import org.litote.kmongo.eq
-import org.litote.kmongo.setValue
+import com.mongodb.client.model.Filters.eq
+import com.mongodb.client.model.Updates
+import com.mongodb.kotlin.client.coroutine.MongoCollection
+import kotlinx.coroutines.flow.firstOrNull
+import model.auth.RefreshTokenEntity
 
 class RefreshTokenRepositoryImpl(
-    private val db: CoroutineDatabase
+    private val refreshTokens: MongoCollection<RefreshTokenEntity>
 ) : RefreshTokenRepository {
-
-    private val refreshTokens: CoroutineCollection<RefreshTokenEntity> = db.getCollection("refresh_tokens")
 
     override suspend fun saveRefreshToken(refreshToken: RefreshTokenEntity): Boolean {
         return refreshTokens.insertOne(refreshToken).wasAcknowledged()
     }
 
     override suspend fun getEntityByToken(token: String): RefreshTokenEntity? {
-        return refreshTokens.findOne(RefreshTokenEntity::token eq token)
+        val filter = eq(RefreshTokenEntity::token.name, token)
+        return refreshTokens.find(filter).firstOrNull()
     }
 
     override suspend fun revokeToken(token: String): Boolean {
-        val result = refreshTokens.updateOne(
-            RefreshTokenEntity::token eq token,
-            setValue(RefreshTokenEntity::isRevoked, true)
-        )
-        return result.wasAcknowledged()
+        val filter = eq(RefreshTokenEntity::token.name, token)
+        return refreshTokens.updateOne(
+            filter = filter,
+            update = Updates.set(RefreshTokenEntity::isRevoked.name, true)
+        ).wasAcknowledged()
     }
 }

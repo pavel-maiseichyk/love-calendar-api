@@ -1,14 +1,14 @@
 package di
 
-import models.RefreshTokenEntity
-import models.UserEntity
+import com.mongodb.kotlin.client.coroutine.MongoClient
+import com.mongodb.kotlin.client.coroutine.MongoCollection
+import com.mongodb.kotlin.client.coroutine.MongoDatabase
+import model.auth.RefreshTokenEntity
+import model.user.UserEntity
 import org.koin.core.module.dsl.singleOf
+import org.koin.core.qualifier.named
 import org.koin.dsl.bind
 import org.koin.dsl.module
-import org.litote.kmongo.coroutine.CoroutineCollection
-import org.litote.kmongo.coroutine.CoroutineDatabase
-import org.litote.kmongo.coroutine.coroutine
-import org.litote.kmongo.reactivestreams.KMongo
 import repository.RefreshTokenRepository
 import repository.RefreshTokenRepositoryImpl
 import repository.UserRepository
@@ -16,19 +16,30 @@ import repository.UserRepositoryImpl
 import security.hashing.HashingService
 import security.hashing.SHA256HashingService
 import security.token.JWTTokenService
-import security.token.TokenConfig
+import model.security.TokenConfig
 import security.token.TokenService
-import utils.Constants.DATABASE_NAME
-import utils.Constants.MONGO_CONNECTION_STRING
+import util.Constants.DATABASE_NAME
+import util.Constants.MONGO_CONNECTION_STRING
+import util.Constants.REFRESH_TOKENS_COLLECTION_NAME
+import util.Constants.USERS_COLLECTION_NAME
 
 val koinModule = module {
-    single<CoroutineDatabase> {
-        KMongo.createClient(MONGO_CONNECTION_STRING)
-            .coroutine
-            .getDatabase(DATABASE_NAME)
+    single<MongoDatabase> {
+        val client = MongoClient.create(MONGO_CONNECTION_STRING)
+        client.getDatabase(databaseName = DATABASE_NAME)
     }
-    singleOf(::UserRepositoryImpl).bind<UserRepository>()
-    singleOf(::RefreshTokenRepositoryImpl).bind<RefreshTokenRepository>()
+    single<MongoCollection<UserEntity>>(named("users_collection")) {
+        get<MongoDatabase>().getCollection<UserEntity>(USERS_COLLECTION_NAME)
+    }
+    single<MongoCollection<RefreshTokenEntity>>(named("tokens_collection")) {
+        get<MongoDatabase>().getCollection<RefreshTokenEntity>(REFRESH_TOKENS_COLLECTION_NAME)
+    }
+    single<UserRepository> {
+        UserRepositoryImpl(get(named("users_collection")))
+    }
+    single<RefreshTokenRepository> {
+        RefreshTokenRepositoryImpl(get(named("tokens_collection")))
+    }
     singleOf(::JWTTokenService).bind<TokenService>()
     singleOf(::SHA256HashingService).bind<HashingService>()
     single<TokenConfig> {

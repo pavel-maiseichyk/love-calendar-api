@@ -1,10 +1,10 @@
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
-import modules.*
+import module.*
 
 fun main() {
-    embeddedServer(Netty, port = 8080) {
+    embeddedServer(Netty, port = 8081) {
         module()
     }.start(wait = true)
 }

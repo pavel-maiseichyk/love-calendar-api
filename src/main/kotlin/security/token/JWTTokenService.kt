@@ -3,15 +3,28 @@ package security.token
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import com.auth0.jwt.exceptions.JWTVerificationException
+import model.security.TokenClaim
+import model.security.TokenConfig
+import model.security.TokenValidationResult
 import java.util.*
 
 class JWTTokenService : TokenService {
     override fun generateAccessToken(config: TokenConfig, vararg claims: TokenClaim): String {
-        return generateToken(config, config.accessTokenExpiration, "access", *claims)
+        return generateToken(
+            config = config,
+            expirationMs = config.accessTokenExpiration,
+            tokenType = "access",
+            claims = claims
+        )
     }
 
     override fun generateRefreshToken(config: TokenConfig, vararg claims: TokenClaim): String {
-        return generateToken(config, config.refreshTokenExpiration, "refresh", *claims)
+        return generateToken(
+            config = config,
+            expirationMs = config.refreshTokenExpiration,
+            tokenType = "refresh",
+            claims = claims
+        )
     }
 
     private fun generateToken(

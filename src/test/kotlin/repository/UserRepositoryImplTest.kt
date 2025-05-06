@@ -1,218 +1,392 @@
-package com.example.repository
+package repository
 
 import com.mongodb.client.model.DeleteOptions
 import com.mongodb.client.model.InsertOneOptions
 import com.mongodb.client.model.ReplaceOptions
-import com.mongodb.client.result.DeleteResult
-import com.mongodb.client.result.UpdateResult
-import io.mockk.*
-import kotlinx.coroutines.runBlocking
-import mappers.toUser
-import models.UserEntity
-import org.litote.kmongo.coroutine.CoroutineCollection
-import org.litote.kmongo.eq
-import repository.UserRepositoryImpl
-import kotlin.test.*
+import com.mongodb.kotlin.client.coroutine.FindFlow
+import com.mongodb.kotlin.client.coroutine.MongoCollection
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.every
+import io.mockk.mockk
+import kotlinx.coroutines.flow.FlowCollector
+import kotlinx.coroutines.test.runTest
+import mapper.toUser
+import model.user.UserEntity
+import model.user.testUserEntity
+import model.user.testUserID
+import org.bson.conversions.Bson
+import util.BaseTestWithoutKoin
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
-class UserRepositoryImplTest {
-
-    private lateinit var repository: UserRepositoryImpl
-    private val userCollection = mockk<CoroutineCollection<UserEntity>>(relaxed = true)
-
-    private val userID = "123"
-    private val userEntity = UserEntity(
-        id = userID,
-        email = "test@example.com",
-        password = "hashed",
-        salt = "salt",
-        name = "Paul",
-        specialDate = "",
-        meetings = emptyList()
-    )
+class UserRepositoryImplTest : BaseTestWithoutKoin() {
+    private lateinit var userRepository: UserRepositoryImpl
+    val userEntities: MongoCollection<UserEntity> = mockk(relaxed = true)
 
     @BeforeTest
     fun setUp() {
-        repository = UserRepositoryImpl(userCollection)
-    }
-
-    @AfterTest
-    fun tearDown() {
-        clearAllMocks()
+        userRepository = UserRepositoryImpl(userEntities)
     }
 
     @Test
-    fun `getUsers should return list of users`() = runBlocking {
-        val userEntities = listOf(userEntity)
-
-        coEvery { userCollection.find().toList() } returns userEntities
-        val result = repository.getUsers()
-
-        assertEquals(userEntities.map { it.toUser() }, result)
-        coVerify { userCollection.find().toList() }
-    }
-
-    @Test
-    fun `getUserByID should return user`() = runBlocking {
-        val testID = "1"
-        coEvery { userCollection.findOne(UserEntity::id eq testID) } returns userEntity
-
-        val result = repository.getUserByID(userID = testID)
-        assertEquals(userEntity.toUser(), result)
-        coVerify { userCollection.findOne(UserEntity::id eq testID) }
-    }
-
-    @Test
-    fun `getUserByID should return null if user doesn't exist`() = runBlocking {
-        val testID = "1"
-        coEvery { userCollection.findOne(UserEntity::id eq testID) } returns null
-
-        val result = repository.getUserByID(userID = testID)
-        assertNull(result)
-        coVerify { userCollection.findOne(UserEntity::id eq testID) }
-    }
-
-    @Test
-    fun `getUserEntityByEmail should return userEntity`() = runBlocking {
-        val testEmail = "test@test.com"
-        coEvery { userCollection.findOne(UserEntity::email eq testEmail) } returns userEntity
-
-        val result = repository.getUserEntityByEmail(email = testEmail)
-        assertEquals(userEntity, result)
-        coVerify { userCollection.findOne(UserEntity::email eq testEmail) }
-    }
-
-    @Test
-    fun `getUserEntityByEmail should return null if user doesn't exist`() = runBlocking {
-        val testEmail = "test@test.com"
-        coEvery { userCollection.findOne(UserEntity::email eq testEmail) } returns null
-
-        val result = repository.getUserEntityByEmail(email = testEmail)
-        assertNull(result)
-        coVerify { userCollection.findOne(UserEntity::email eq testEmail) }
-    }
-
-    @Test
-    fun `addUserEntity should return true if insert was acknowledged`() = runBlocking {
-        coEvery { userCollection.insertOne(any<UserEntity>(), any<InsertOneOptions>()).wasAcknowledged() } returns true
-
-        val result = repository.addUserEntity(userEntity)
-        assertTrue(result)
-        coVerify { userCollection.insertOne(any<UserEntity>(), any<InsertOneOptions>()).wasAcknowledged() }
-    }
-
-    @Test
-    fun `addUserEntity should return false if insert wasn't acknowledged`() = runBlocking {
-        coEvery { userCollection.insertOne(any<UserEntity>(), any<InsertOneOptions>()).wasAcknowledged() } returns false
-
-        val result = repository.addUserEntity(userEntity = userEntity)
-        assertFalse(result)
-        coVerify { userCollection.insertOne(any<UserEntity>(), any<InsertOneOptions>()).wasAcknowledged() }
-    }
-
-    @Test
-    fun `updateUser should return true if replace was acknowledged`() = runBlocking {
-        val replaceResultMock = mockk<UpdateResult> {
-            every { wasAcknowledged() } returns true
-        }
-        coEvery { userCollection.findOne(UserEntity::id eq userID) } returns userEntity
+    fun `getUsers - user found`() = runTest {
+        val mockFindFlow = mockk<FindFlow<UserEntity>>()
         coEvery {
-            userCollection.replaceOne(
-                eq(UserEntity::id eq userID),
-                any<UserEntity>(),
-                any<ReplaceOptions>()
-            )
-        } returns replaceResultMock
-
-        val result = repository.updateUser(updatedUser = userEntity.toUser())
-        assertTrue(result)
-        coVerify {
-            userCollection.replaceOne(
-                eq(UserEntity::id eq userID),
-                any<UserEntity>(),
-                any<ReplaceOptions>()
-            )
+            mockFindFlow.collect(any())
+        } coAnswers {
+            val collector = firstArg<FlowCollector<UserEntity>>()
+            collector.emit(testUserEntity)
+            true
         }
-    }
 
-    @Test
-    fun `updateUser should return false if replace wasn't acknowledged`() = runBlocking {
-        val replaceResultMock = mockk<UpdateResult> {
-            every { wasAcknowledged() } returns false
-        }
-        coEvery { userCollection.findOne(UserEntity::id eq userID) } returns userEntity
         coEvery {
-            userCollection.replaceOne(
-                eq(UserEntity::id eq userID),
-                any<UserEntity>(),
-                any<ReplaceOptions>()
-            )
-        } returns replaceResultMock
+            userEntities.find(any<Bson>())
+        } returns mockFindFlow
 
-        val result = repository.updateUser(updatedUser = userEntity.toUser())
-        assertFalse(result)
-        coVerify {
-            userCollection.replaceOne(
-                eq(UserEntity::id eq userID),
-                any<UserEntity>(),
-                any<ReplaceOptions>()
-            )
-        }
+        val result = userRepository.getUsers()
+
+        assertEquals(listOf(testUserEntity.toUser()), result)
+        coVerify { userEntities.find(any<Bson>()) }
     }
 
     @Test
-    fun `updateUser should return false if user wasn't found`() = runBlocking {
-        coEvery { userCollection.findOne(UserEntity::id eq userID) } returns null
+    fun `getUsers - no users found`() = runTest {
+        val mockFindFlow = mockk<FindFlow<UserEntity>>()
+        coEvery {
+            mockFindFlow.collect(any())
+        } returns Unit
 
-        val result = repository.updateUser(updatedUser = userEntity.toUser())
-        assertFalse(result)
-        coVerify {
-            userCollection.findOne(UserEntity::id eq userID)
-        }
+        coEvery {
+            userEntities.find(any<Bson>())
+        } returns mockFindFlow
+
+        val result = userRepository.getUsers()
+
+        assertEquals(emptyList(), result)
+        coVerify { userEntities.find(any<Bson>()) }
     }
 
     @Test
-    fun `removeUser should return true if delete was acknowledged`() = runBlocking {
-        val deleteResultMock = mockk<DeleteResult>(relaxed = true) {
+    fun `getUserByID - user found`() = runTest {
+        val mockFindFlow = mockk<FindFlow<UserEntity>>()
+        coEvery {
+            mockFindFlow.collect(any())
+        } coAnswers {
+            val collector = firstArg<FlowCollector<UserEntity>>()
+            collector.emit(testUserEntity)
+            true
+        }
+
+        coEvery {
+            userEntities.find(any<Bson>())
+        } returns mockFindFlow
+
+        val result = userRepository.getUserByID(testUserID)
+
+        assertEquals(testUserEntity.toUser(), result)
+        coVerify { userEntities.find(any<Bson>()) }
+    }
+
+    @Test
+    fun `getUserByID - user not found`() = runTest {
+        val mockFindFlow = mockk<FindFlow<UserEntity>>()
+        coEvery {
+            mockFindFlow.collect(any())
+        } returns Unit
+
+        coEvery {
+            userEntities.find(any<Bson>())
+        } returns mockFindFlow
+
+        val result = userRepository.getUserByID(testUserID)
+
+        assertNull(result)
+        coVerify { userEntities.find(any<Bson>()) }
+    }
+
+    @Test
+    fun `getUserEntityByEmail - user found`() = runTest {
+        val mockFindFlow = mockk<FindFlow<UserEntity>>()
+        coEvery {
+            mockFindFlow.collect(any())
+        } coAnswers {
+            val collector = firstArg<FlowCollector<UserEntity>>()
+            collector.emit(testUserEntity)
+            true
+        }
+
+        coEvery {
+            userEntities.find(any<Bson>())
+        } returns mockFindFlow
+
+        val result = userRepository.getUserEntityByEmail(testUserID)
+
+        assertEquals(testUserEntity, result)
+        coVerify { userEntities.find(any<Bson>()) }
+    }
+
+    @Test
+    fun `getUserEntityByEmail - user not found`() = runTest {
+        val mockFindFlow = mockk<FindFlow<UserEntity>>()
+        coEvery {
+            mockFindFlow.collect(any())
+        } returns Unit
+
+        coEvery {
+            userEntities.find(any<Bson>())
+        } returns mockFindFlow
+
+        val result = userRepository.getUserEntityByEmail(testUserID)
+
+        assertNull(result)
+        coVerify { userEntities.find(any<Bson>()) }
+    }
+
+
+    @Test
+    fun `removeUser - success`() = runTest {
+        coEvery {
+            userEntities.deleteOne(
+                filter = any<Bson>(),
+                options = any<DeleteOptions>()
+            )
+        } returns mockk {
             every { wasAcknowledged() } returns true
         }
 
-        coEvery {
-            userCollection.deleteOne(
-                eq(UserEntity::id eq userID),
-                any<DeleteOptions>()
-            )
-        } returns deleteResultMock
-
-        val result = repository.removeUser(userID = userID)
+        val result = userRepository.removeUser(testUserID)
         assertTrue(result)
         coVerify {
-            userCollection.deleteOne(
-                eq(UserEntity::id eq userID),
-                any<DeleteOptions>()
+            userEntities.deleteOne(
+                filter = any<Bson>(),
+                options = any<DeleteOptions>()
             )
         }
     }
 
+
     @Test
-    fun `removeUser should return false if delete wasn't acknowledged`() = runBlocking {
-        val deleteResultMock = mockk<DeleteResult>(relaxed = true) {
+    fun `removeUser - failure`() = runTest {
+        coEvery {
+            userEntities.deleteOne(
+                filter = any<Bson>(),
+                options = any<DeleteOptions>()
+            )
+        } returns mockk {
             every { wasAcknowledged() } returns false
         }
 
-        coEvery {
-            userCollection.deleteOne(
-                eq(UserEntity::id eq userID),
-                any<DeleteOptions>()
-            )
-        } returns deleteResultMock
-
-        val result = repository.removeUser(userID = userID)
+        val result = userRepository.removeUser(testUserID)
         assertFalse(result)
         coVerify {
-            userCollection.deleteOne(
-                eq(UserEntity::id eq userID),
-                any<DeleteOptions>()
+            userEntities.deleteOne(
+                filter = any<Bson>(),
+                options = any<DeleteOptions>()
             )
+        }
+    }
+
+
+    @Test
+    fun `addUserEntity - success`() = runTest {
+        coEvery {
+            userEntities.insertOne(
+                document = any<UserEntity>(),
+                options = any<InsertOneOptions>()
+            )
+        } returns mockk {
+            every { wasAcknowledged() } returns true
+        }
+
+        val mockFindFlow = mockk<FindFlow<UserEntity>>()
+        coEvery {
+            mockFindFlow.collect(any())
+        } coAnswers {
+            val collector = firstArg<FlowCollector<UserEntity>>()
+            collector.emit(testUserEntity)
+            true
+        }
+
+        coEvery {
+            userEntities.find(any<Bson>())
+        } returns mockFindFlow
+
+        val result = userRepository.addUserEntity(testUserEntity)
+
+        assertEquals(testUserID, result)
+        coVerify {
+            userEntities.insertOne(
+                document = testUserEntity,
+                options = any<InsertOneOptions>()
+            )
+        }
+        coVerify {
+            userEntities.find(any<Bson>())
+        }
+    }
+
+
+    @Test
+    fun `addUserEntity - insert not acknowledged`() = runTest {
+        coEvery {
+            userEntities.insertOne(
+                document = any<UserEntity>(),
+                options = any<InsertOneOptions>()
+            )
+        } returns mockk {
+            every { wasAcknowledged() } returns false
+        }
+
+        val result = userRepository.addUserEntity(testUserEntity)
+
+        assertNull(result)
+        coVerify {
+            userEntities.insertOne(
+                document = testUserEntity,
+                options = any<InsertOneOptions>()
+            )
+        }
+    }
+
+
+    @Test
+    fun `addUserEntity - user not found`() = runTest {
+        coEvery {
+            userEntities.insertOne(
+                document = any<UserEntity>(),
+                options = any<InsertOneOptions>()
+            )
+        } returns mockk {
+            every { wasAcknowledged() } returns true
+        }
+
+        val mockFindFlow = mockk<FindFlow<UserEntity>>()
+        coEvery {
+            mockFindFlow.collect(any())
+        } returns Unit
+
+        coEvery {
+            userEntities.find(any<Bson>())
+        } returns mockFindFlow
+
+        val result = userRepository.addUserEntity(testUserEntity)
+
+        assertNull(result)
+        coVerify {
+            userEntities.insertOne(
+                document = testUserEntity,
+                options = any<InsertOneOptions>()
+            )
+        }
+        coVerify {
+            userEntities.find(any<Bson>())
+        }
+    }
+
+
+    @Test
+    fun `updateUser - success`() = runTest {
+        coEvery {
+            userEntities.replaceOne(
+                filter = any<Bson>(),
+                replacement = any<UserEntity>(),
+                options = any<ReplaceOptions>()
+            )
+        } returns mockk {
+            every { wasAcknowledged() } returns true
+        }
+
+        val mockFindFlow = mockk<FindFlow<UserEntity>>()
+        coEvery {
+            mockFindFlow.collect(any())
+        } coAnswers {
+            val collector = firstArg<FlowCollector<UserEntity>>()
+            collector.emit(testUserEntity)
+            true
+        }
+
+        coEvery {
+            userEntities.find(any<Bson>())
+        } returns mockFindFlow
+
+        val result = userRepository.updateUser(testUserEntity.toUser())
+
+        assertTrue(result)
+        coVerify {
+            userEntities.replaceOne(
+                filter = any<Bson>(),
+                replacement = any<UserEntity>(),
+                options = any<ReplaceOptions>()
+            )
+        }
+        coVerify {
+            userEntities.find(any<Bson>())
+        }
+    }
+
+
+    @Test
+    fun `updateUser - user not found`() = runTest {
+        val mockFindFlow = mockk<FindFlow<UserEntity>>()
+        coEvery {
+            mockFindFlow.collect(any())
+        } returns Unit
+
+        coEvery {
+            userEntities.find(any<Bson>())
+        } returns mockFindFlow
+
+        val result = userRepository.updateUser(testUserEntity.toUser())
+
+        assertFalse(result)
+        coVerify {
+            userEntities.find(any<Bson>())
+        }
+    }
+
+
+    @Test
+    fun `updateUser - failure`() = runTest {
+        coEvery {
+            userEntities.replaceOne(
+                filter = any<Bson>(),
+                replacement = any<UserEntity>(),
+                options = any<ReplaceOptions>()
+            )
+        } returns mockk {
+            every { wasAcknowledged() } returns false
+        }
+
+        val mockFindFlow = mockk<FindFlow<UserEntity>>()
+        coEvery {
+            mockFindFlow.collect(any())
+        } coAnswers {
+            val collector = firstArg<FlowCollector<UserEntity>>()
+            collector.emit(testUserEntity)
+            true
+        }
+
+        coEvery {
+            userEntities.find(any<Bson>())
+        } returns mockFindFlow
+
+        val result = userRepository.updateUser(testUserEntity.toUser())
+
+        assertFalse(result)
+        coVerify {
+            userEntities.replaceOne(
+                filter = any<Bson>(),
+                replacement = any<UserEntity>(),
+                options = any<ReplaceOptions>()
+            )
+        }
+        coVerify {
+            userEntities.find(any<Bson>())
         }
     }
 }

@@ -1,6 +1,6 @@
 package repository
 
-import models.RefreshTokenEntity
+import model.auth.RefreshTokenEntity
 
 interface RefreshTokenRepository {
     suspend fun saveRefreshToken(refreshToken: RefreshTokenEntity): Boolean

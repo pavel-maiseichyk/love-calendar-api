@@ -1,42 +1,96 @@
-# ktor-sample
+# Love Calendar API
 
-This project was created using the [Ktor Project Generator](https://start.ktor.io).
+[![Kotlin](https://img.shields.io/badge/kotlin-2.1.20-purple.svg)](https://kotlinlang.org)
+[![Ktor](https://img.shields.io/badge/ktor-3.1.2-blue.svg)](https://ktor.io)
+[![MongoDB](https://img.shields.io/badge/mongodb-5.4.0-yellow.svg)](https://www.mongodb.com)
 
-Here are some useful links to get you started:
+## 🚀 Overview
 
-- [Ktor Documentation](https://ktor.io/docs/home.html)
-- [Ktor GitHub page](https://github.com/ktorio/ktor)
-- The [Ktor Slack chat](https://app.slack.com/client/T09229ZC6/C0A974TJ9). You'll need to [request an invite](https://surveys.jetbrains.com/s3/kotlin-slack-sign-up) to join.
+A clean and functional backend server powering the Love Calendar mobile application. Built with Ktor and MongoDB, this
+API handles user authentication, profile management, and calendar data with solid security practices.
 
-## Features
+## ✨ Features
 
-Here's a list of features included in this project:
+- **🛡️ Security**
+    - Custom SHA256 hashing implementation
+    - JWT authentication with access & refresh token mechanism
+    - Ktor JWT authentication integration
 
-| Name                                                                   | Description                                                                        |
-| ------------------------------------------------------------------------|------------------------------------------------------------------------------------ |
-| [Koin](https://start.ktor.io/p/koin)                                   | Provides dependency injection                                                      |
-| [Content Negotiation](https://start.ktor.io/p/content-negotiation)     | Provides automatic content conversion according to Content-Type and Accept headers |
-| [Routing](https://start.ktor.io/p/routing)                             | Provides a structured routing DSL                                                  |
-| [kotlinx.serialization](https://start.ktor.io/p/kotlinx-serialization) | Handles JSON serialization using kotlinx.serialization library                     |
+- **🧩 Architecture**
+    - Dependency injection with Koin
+    - MongoDB for data persistence
+    - Comprehensive exception handling with StatusPages
 
-## Building & Running
+- **🧪 Testing**
+    - 100% unit test coverage* on core functionality
+    - Focused unit tests with kotlin.test, mockk and assertk
+    - *Excluding di, module, model, util packages, and Application.kt
 
-To build or run the project, use one of the following tasks:
+- **🔌 API Endpoints**
+    - Complete user management flows
+    - Secure authentication processes
+    - ContentNegotiation for request/response formatting
 
-| Task                          | Description                                                          |
-| -------------------------------|---------------------------------------------------------------------- |
-| `./gradlew test`              | Run the tests                                                        |
-| `./gradlew build`             | Build everything                                                     |
-| `buildFatJar`                 | Build an executable JAR of the server with all dependencies included |
-| `buildImage`                  | Build the docker image to use with the fat JAR                       |
-| `publishImageToLocalRegistry` | Publish the docker image locally                                     |
-| `run`                         | Run the server                                                       |
-| `runDocker`                   | Run using the local docker image                                     |
+## 🔧 Tech Stack
 
-If the server starts successfully, you'll see the following output:
+- **Framework:** Ktor
+- **Database:** MongoDB
+- **Authentication:** JWT
+- **Dependency Injection:** Koin
+- **Testing:** kotlin.test, MockK, AssertK
+- **Serialization:** kotlinx.serialization
 
+## 📝 API Documentation
+
+### Authentication
+
+| Endpoint    | Method | Description                                   |
+|-------------|--------|-----------------------------------------------|
+| `/sign_up`  | POST   | Register a new user                           |
+| `/sign_in`  | POST   | Authenticate user and receive tokens          |
+| `/sign_out` | POST   | Invalidate current tokens                     |
+| `/refresh`  | POST   | Generate new access token using refresh token |
+
+### User Management
+
+| Endpoint | Method | Description               |
+|----------|--------|---------------------------|
+| `/users` | GET    | Retrieve user information |
+| `/users` | PUT    | Update user profile       |
+| `/users` | DELETE | Delete user account       |
+
+## 💡 Getting Started
+
+```bash
+# Clone the repository
+git clone https://github.com/pavel-maiseichyk/love-calendar-api.git
+
+# Navigate to project directory
+cd love-calendar-api
+
+# Start MongoDB with Docker
+docker run -d -p 27017:27017 --name mongodb mongo:latest
+
+# Set required environment variables
+export ISSUER="your-issuer"
+export AUDIENCE="your-audience"
+export JWT_SECRET="your-secret-key"
+
+# Run the application
+./gradlew run
+
+# Run tests
+./gradlew test
 ```
-2024-12-04 14:32:45.584 [main] INFO  Application - Application started in 0.303 seconds.
-2024-12-04 14:32:45.682 [main] INFO  Application - Responding at http://0.0.0.0:8080
-```
 
+## 🤝 Contributing
+
+Contributions are welcome! Feel free to open an issue or submit a pull request.
+
+## 📄 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+---
+
+Built with 🤍️ and Kotlin.

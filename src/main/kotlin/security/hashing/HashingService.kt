@@ -1,5 +1,7 @@
 package security.hashing
 
+import model.security.SaltedHash
+
 interface HashingService {
 
     fun generateSaltedHash(
