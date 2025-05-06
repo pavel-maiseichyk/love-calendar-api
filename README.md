@@ -6,8 +6,7 @@
 
 ## 🚀 Overview
 
-A clean and functional backend server powering the Love Calendar mobile application. Built with Ktor and MongoDB, this
-API handles user authentication, profile management, and calendar data with solid security practices.
+A clean and functional backend server powering the Love Calendar mobile application. Built with Ktor and MongoDB, this API handles user authentication, profile management, and calendar data with solid security practices.
 
 ## ✨ Features
 
@@ -24,7 +23,7 @@ API handles user authentication, profile management, and calendar data with soli
 - **🧪 Testing**
     - 100% unit test coverage* on core functionality
     - Focused unit tests with kotlin.test, mockk and assertk
-    - *Excluding di, module, model, util packages, and Application.kt
+    - *Excluding boilerplate code: di, module, model, util packages, and Application.kt
 
 - **🔌 API Endpoints**
     - Complete user management flows
@@ -89,8 +88,4 @@ Contributions are welcome! Feel free to open an issue or submit a pull request.
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
-
----
-
-Built with 🤍️ and Kotlin.
+This project is licensed under the MIT License – see the [LICENSE](./LICENSE) file for details.
